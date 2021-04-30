@@ -1,0 +1,65 @@
+version: "3.5"
+services:
+  laravel_1-redis:
+    image: redis:alpine
+    container_name: laravel_1-redis
+    volumes:
+      - laravel_1-redis:/data
+    ports:
+      - "16377:6379"
+    networks:
+      - laravel_1
+
+  laravel_1-mysql:
+    image: mysql:5.7.22
+    container_name: laravel_1-mysql
+    working_dir: /application
+    volumes:
+      - laravel_1-mysql:/var/lib/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: KBHJ8765ljk767kh
+      MYSQL_DATABASE: app
+    ports:
+      - "2324:3306"
+    networks:
+      - laravel_1
+
+  laravel_1-nginx:
+    image: nginx:alpine
+    container_name: laravel_1-nginx
+    working_dir: /application
+    volumes:
+      - ../:/application
+      - ./phpdocker/nginx:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    networks:
+      - laravel_1
+    depends_on:
+      - laravel_1-php-fpm
+
+  laravel_1-php-fpm:
+    build: phpdocker/php-fpm
+    container_name: laravel_1-php-fpm
+    working_dir: /application
+    volumes:
+      - ../:/application
+      - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
+    ports:
+      - "9000"
+    networks:
+      - laravel_1
+    environment:
+      APP_ENV: local
+      CONTAINER_ROLE: app
+
+networks:
+  laravel_1:
+    driver: bridge
+
+volumes:
+  laravel_1-mysql:
+    driver: "local"
+  laravel_1-redis:
+    driver: "local"
+
